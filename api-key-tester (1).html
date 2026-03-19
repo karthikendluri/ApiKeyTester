@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>API Key Tester — Identify & Test Any API Key</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:        #F4F6F9;
+    --surface:   #FFFFFF;
+    --surface2:  #F0F2F5;
+    --border:    #E2E6ED;
+    --border2:   #C8D0DC;
+    --text:      #0D1117;
+    --text2:     #3D4A5C;
+    --muted:     #7A8899;
+    --dim:       #B8C4D0;
+    --mono:      'IBM Plex Mono', monospace;
+    --display:   'Outfit', sans-serif;
+    --green:     #0BAA6A;
+    --green-bg:  #EDFBF4;
+    --green-bd:  #86DDB8;
+    --red:       #D92D5A;
+    --red-bg:    #FEF0F4;
+    --red-bd:    #F0A0B8;
+    --amber:     #C97A10;
+    --amber-bg:  #FFF8EC;
+    --amber-bd:  #EEC97A;
+    --blue:      #1B6EF3;
+    --blue-bg:   #EEF4FF;
+    --blue-bd:   #93B8FA;
+    --radius:    10px;
+    --radius-lg: 14px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--display);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 3px; }
+  ::selection { background: var(--blue); color: #fff; }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-brand { display: flex; align-items: center; gap: 10px; }
+  .nav-logo {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--blue);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: #fff; font-weight: 700;
+  }
+  .nav-title { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+  .nav-badge {
+    font-family: var(--mono);
+    font-size: 10px; padding: 2px 8px;
+    background: var(--blue-bg); color: var(--blue);
+    border: 1px solid var(--blue-bd); border-radius: 4px;
+  }
+  .nav-count { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+  /* ── MAIN ── */
+  main { max-width: 800px; margin: 0 auto; padding: 52px 24px 80px; }
+
+  /* ── HERO ── */
+  .hero { text-align: center; margin-bottom: 48px; animation: fadeUp .5s ease both; }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 50px);
+    font-weight: 800; color: var(--text);
+    line-height: 1.1; letter-spacing: -0.025em;
+    margin-bottom: 14px;
+  }
+  .hero h1 span { color: var(--blue); }
+  .hero p { font-size: 15px; color: var(--muted); line-height: 1.7; max-width: 460px; margin: 0 auto; font-family: var(--mono); }
+
+  /* ── PROVIDER PILLS ── */
+  .pills {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    justify-content: center; margin-bottom: 44px;
+    animation: fadeUp .5s .08s ease both;
+  }
+  .pill {
+    display: flex; align-items: center; gap: 5px;
+    padding: 4px 11px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; font-size: 11px; color: var(--text2);
+    font-family: var(--mono);
+    transition: border-color .15s, background .15s;
+  }
+  .pill:hover { border-color: var(--blue-bd); background: var(--blue-bg); color: var(--blue); }
+  .pill-icon { font-size: 13px; }
+
+  /* ── INPUT CARD ── */
+  .input-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: border-color .2s, box-shadow .2s;
+    animation: fadeUp .5s .16s ease both;
+  }
+  .input-card.focused {
+    border-color: var(--blue-bd);
+    box-shadow: 0 0 0 3px var(--blue-bg);
+  }
+
+  .input-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .input-label {
+    font-family: var(--mono); font-size: 10px;
+    text-transform: uppercase; letter-spacing: .12em; color: var(--muted);
+  }
+  .detected-badge {
+    display: none; align-items: center; gap: 6px;
+    padding: 3px 10px;
+    background: var(--blue-bg); border: 1px solid var(--blue-bd);
+    border-radius: 20px; font-size: 11px; color: var(--blue);
+    font-family: var(--mono); font-weight: 600;
+    animation: popIn .25s ease;
+  }
+  .detected-badge.show { display: flex; }
+
+  #key-input {
+    width: 100%; padding: 13px 16px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text);
+    font-size: 14px; font-family: var(--mono);
+    letter-spacing: .04em; outline: none;
+    transition: border-color .15s;
+    margin-bottom: 14px;
+  }
+  #key-input::placeholder { color: var(--dim); }
+  #key-input:focus { border-color: var(--blue-bd); }
+
+  /* Provider info row */
+  .provider-info {
+    display: none; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 14px;
+    animation: popIn .25s ease;
+  }
+  .provider-info.show { display: flex; }
+  .provider-info-icon { font-size: 22px; flex-shrink: 0; }
+  .provider-info-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .provider-info-desc { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-top: 1px; }
+  .provider-info-cat {
+    margin-left: auto; flex-shrink: 0;
+    font-size: 10px; padding: 2px 8px;
+    background: var(--blue-bg); color: var(--blue);
+    border: 1px solid var(--blue-bd); border-radius: 4px;
+    font-family: var(--mono);
+  }
+
+  /* Test button */
+  #test-btn {
+    width: 100%; padding: 13px;
+    background: var(--blue); color: #fff;
+    border: 1px solid var(--blue); border-radius: var(--radius);
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    letter-spacing: .06em; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background .15s, transform .1s;
+  }
+  #test-btn:hover:not(:disabled) { background: #1558d6; }
+  #test-btn:active:not(:disabled) { transform: scale(.99); }
+  #test-btn:disabled { background: var(--surface2); color: var(--muted); border-color: var(--border); cursor: not-allowed; }
+
+  /* Button row */
+  .btn-row { display: flex; gap: 10px; margin-bottom: 0; }
+  .btn-row #test-btn { flex: 1; margin-bottom: 0; }
+  #clear-btn {
+    padding: 13px 18px;
+    background: none; color: var(--muted);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    font-family: var(--mono); font-size: 13px; font-weight: 500;
+    cursor: pointer; white-space: nowrap;
+    transition: all .15s; letter-spacing: .04em;
+  }
+  #clear-btn:hover { background: var(--red-bg); color: var(--red); border-color: var(--red-bd); }
+  #clear-btn:active { transform: scale(.98); }
+
+  /* Clear log button */
+  #clear-log-btn {
+    margin-left: auto;
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); padding: 3px 10px;
+    border-radius: 4px; font-size: 10px; cursor: pointer;
+    font-family: var(--mono); transition: all .15s;
+  }
+  #clear-log-btn:hover { background: var(--red-bg); color: var(--red); border-color: var(--red-bd); }
+
+  .spinner {
+    width: 13px; height: 13px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff; border-radius: 50%;
+    animation: spin .7s linear infinite;
+    display: none;
+  }
+  .hint { text-align: center; font-size: 11px; color: var(--dim); margin-top: 10px; font-family: var(--mono); }
+
+  /* ── RESULT CARD ── */
+  #result-card {
+    display: none;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 20px;
+    animation: popIn .3s ease;
+  }
+
+  .result-header {
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid transparent;
+  }
+  .result-header-left { display: flex; align-items: center; gap: 10px; }
+  .result-icon { font-size: 24px; }
+  .result-name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .result-cat  { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+  .result-status-badge {
+    font-size: 12px; font-weight: 700;
+    font-family: var(--mono); padding: 5px 14px;
+    border-radius: 6px; border: 1px solid;
+  }
+
+  .result-body { padding: 20px; }
+  .result-msg {
+    font-size: 13px; font-family: var(--mono);
+    padding: 10px 14px; border-radius: var(--radius);
+    border: 1px solid; margin-bottom: 18px;
+    line-height: 1.6;
+  }
+
+  /* Metrics grid */
+  .metrics {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px; margin-bottom: 16px;
+  }
+  .metric {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 14px;
+  }
+  .metric-label {
+    font-family: var(--mono); font-size: 9px;
+    text-transform: uppercase; letter-spacing: .12em;
+    color: var(--muted); margin-bottom: 5px;
+  }
+  .metric-value { font-family: var(--mono); font-size: 18px; font-weight: 700; }
+
+  .result-docs { font-size: 12px; color: var(--muted); font-family: var(--mono); margin-bottom: 14px; }
+  .result-docs a { color: var(--blue); text-decoration: none; }
+
+  .toggle-raw {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); padding: 5px 12px;
+    border-radius: 5px; font-size: 11px; cursor: pointer;
+    font-family: var(--mono); transition: border-color .15s, color .15s;
+  }
+  .toggle-raw:hover { border-color: var(--blue-bd); color: var(--blue); }
+
+  #raw-response {
+    display: none; margin-top: 10px; padding: 14px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); font-size: 11px; color: var(--text2);
+    font-family: var(--mono); line-height: 1.65;
+    max-height: 240px; overflow-y: auto; white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  /* ── SESSION LOG ── */
+  #log-card {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden;
+    animation: fadeUp .4s ease;
+  }
+  .log-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+  }
+  .log-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  .log-row {
+    padding: 9px 20px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono); font-size: 11px;
+  }
+  .log-row:last-child { border-bottom: none; }
+  .log-time  { color: var(--dim); min-width: 60px; }
+  .log-stat  { font-weight: 700; min-width: 68px; }
+  .log-name  { color: var(--text); flex: 1; }
+  .log-mask  { color: var(--dim); }
+  .log-lat   { color: var(--muted); min-width: 50px; text-align: right; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; margin-top: 56px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--dim); line-height: 2;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes popIn  { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
+  @keyframes spin   { to{transform:rotate(360deg)} }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">⬡</div>
+    <span class="nav-title">API Key Tester</span>
+    <span class="nav-badge">v3.0</span>
+  </div>
+  <span class="nav-count" id="provider-count">15 providers</span>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Identify &amp; test<br><span>any API key</span> instantly</h1>
+    <p>Paste a key → auto-detects the provider → runs a live test → shows exactly what's wrong</p>
+  </div>
+
+  <!-- PILLS -->
+  <div class="pills" id="pills-wrap"></div>
+
+  <!-- INPUT CARD -->
+  <div class="input-card" id="input-card">
+    <div class="input-top">
+      <span class="input-label">API Key</span>
+      <div class="detected-badge" id="detected-badge">
+        <span id="det-icon"></span>
+        <span id="det-name"></span>
+        <span style="opacity:.6;font-weight:400">detected</span>
+      </div>
+    </div>
+
+    <input
+      type="password"
+      id="key-input"
+      placeholder="sk-ant-... or AIzaSy... or ghp_... or any API key"
+      autocomplete="off"
+      spellcheck="false"
+    />
+
+    <div class="provider-info" id="provider-info">
+      <span class="provider-info-icon" id="pi-icon"></span>
+      <div>
+        <div class="provider-info-name" id="pi-name"></div>
+        <div class="provider-info-desc" id="pi-desc"></div>
+      </div>
+      <span class="provider-info-cat" id="pi-cat"></span>
+    </div>
+
+    <div class="btn-row">
+      <button id="test-btn" disabled>
+        <div class="spinner" id="spinner"></div>
+        <span id="btn-text">RUN TEST →</span>
+      </button>
+      <button id="clear-btn" onclick="clearAll()">✕ Clear</button>
+    </div>
+    <p class="hint">Keys are never stored · tests run client-side · logs clear on refresh · press Enter to run</p>
+  </div>
+
+  <!-- RESULT CARD -->
+  <div id="result-card">
+    <div class="result-header" id="result-header">
+      <div class="result-header-left">
+        <span class="result-icon" id="res-icon"></span>
+        <div>
+          <div class="result-name" id="res-name"></div>
+          <div class="result-cat"  id="res-cat"></div>
+        </div>
+      </div>
+      <span class="result-status-badge" id="res-badge"></span>
+    </div>
+    <div class="result-body">
+      <div class="result-msg" id="res-msg"></div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">HTTP STATUS</div>
+          <div class="metric-value" id="met-status">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">LATENCY</div>
+          <div class="metric-value" id="met-latency">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">CATEGORY</div>
+          <div class="metric-value" id="met-cat" style="font-size:13px;padding-top:3px">—</div>
+        </div>
+      </div>
+      <div class="result-docs" id="res-docs"></div>
+      <button class="toggle-raw" id="toggle-raw" style="display:none" onclick="toggleRaw()">▶ Show raw response</button>
+      <pre id="raw-response"></pre>
+    </div>
+  </div>
+
+  <!-- SESSION LOG -->
+  <div id="log-card">
+    <div class="log-header">
+      <div class="log-dot"></div>
+      <span id="log-title">SESSION LOG — 0 tests</span>
+      <button id="clear-log-btn" onclick="clearLog()">✕ Clear log</button>
+    </div>
+    <div id="log-body"></div>
+  </div>
+
+  <footer>
+    API Key Tester v3 · Pure HTML · No framework · No build step · Deploy anywhere<br>
+    Keys are never stored · all tests run client-side · logs clear on refresh
+  </footer>
+
+</main>
+
+<script>
+// ── PROVIDER DEFINITIONS ─────────────────────────────────────────────────────
+const PROVIDERS = {
+  anthropic:   { name:'Anthropic Claude', cat:'AI / LLM',      icon:'🤖', color:'#D4A853', desc:'Claude AI for text generation and analysis',         docs:'https://docs.anthropic.com',                      test: testAnthropic   },
+  openai:      { name:'OpenAI',           cat:'AI / LLM',      icon:'⚡', color:'#10A37F', desc:'GPT-4, DALL-E, Whisper and more',                    docs:'https://platform.openai.com/docs',                test: testOpenAI      },
+  google:      { name:'Google Gemini',    cat:'AI / LLM',      icon:'✦', color:'#4285F4', desc:'Google Gemini generative language API',               docs:'https://ai.google.dev/docs',                      test: testGoogle      },
+  google_maps: { name:'Google Maps',      cat:'Maps / Geo',    icon:'🗺', color:'#34A853', desc:'Maps, Places, Geocoding and Directions',             docs:'https://developers.google.com/maps',              test: testGoogleMaps  },
+  github:      { name:'GitHub',           cat:'DevTools',      icon:'🐙', color:'#1B1F24', desc:'REST API for repos, issues, actions and more',       docs:'https://docs.github.com/en/rest',                 test: testGitHub      },
+  stripe:      { name:'Stripe',           cat:'Payments',      icon:'💳', color:'#635BFF', desc:'Payment processing and billing platform',            docs:'https://stripe.com/docs/api',                     test: testStripe      },
+  sendgrid:    { name:'SendGrid',         cat:'Email',         icon:'✉', color:'#1A82E2', desc:'Transactional email delivery by Twilio',             docs:'https://docs.sendgrid.com',                       test: testSendGrid    },
+  huggingface: { name:'Hugging Face',     cat:'AI / ML',       icon:'🤗', color:'#FFD21E', desc:'Open-source AI models and datasets hub',             docs:'https://huggingface.co/docs',                     test: testHuggingFace },
+  replicate:   { name:'Replicate',        cat:'AI / Images',   icon:'◉', color:'#000',   desc:'Run open-source ML models in the cloud',             docs:'https://replicate.com/docs',                      test: testReplicate   },
+  cohere:      { name:'Cohere',           cat:'AI / LLM',      icon:'◈', color:'#3B6E5A', desc:'NLP AI for search, summarization and generation',    docs:'https://docs.cohere.com',                         test: testCohere      },
+  pinecone:    { name:'Pinecone',         cat:'Vector DB',     icon:'🌲', color:'#1B17F5', desc:'Vector database for AI-powered search',              docs:'https://docs.pinecone.io',                        test: testPinecone    },
+  supabase:    { name:'Supabase',         cat:'Database',      icon:'⚡', color:'#3ECF8E', desc:'Open-source Firebase alternative with Postgres',     docs:'https://supabase.com/docs',                       test: testSupabase    },
+  weatherapi:  { name:'WeatherAPI',       cat:'Weather',       icon:'🌤', color:'#0EA5E9', desc:'Real-time weather and forecast data',                docs:'https://www.weatherapi.com/docs',                 test: testWeatherAPI  },
+  openweather: { name:'OpenWeatherMap',   cat:'Weather',       icon:'⛅', color:'#E86D2B', desc:'Global weather data and forecasts',                  docs:'https://openweathermap.org/api',                  test: testOpenWeather },
+  newsapi:     { name:'NewsAPI',          cat:'News',          icon:'📰', color:'#D9342B', desc:'News headlines and articles from 80,000 sources',    docs:'https://newsapi.org/docs',                        test: testNewsAPI     },
+};
+
+// ── KEY IDENTIFICATION ───────────────────────────────────────────────────────
+function identifyProvider(key) {
+  const k = key.trim();
+  if (k.startsWith('sk-ant-'))                          return 'anthropic';
+  if (k.startsWith('sk-') && k.length > 45)             return 'openai';
+  if (k.startsWith('AIzaSy'))                           return 'google';
+  if (k.startsWith('ghp_') || k.startsWith('github_pat_')) return 'github';
+  if (k.startsWith('hf_'))                              return 'huggingface';
+  if (k.startsWith('r8_'))                              return 'replicate';
+  if (k.startsWith('co-'))                              return 'cohere';
+  if (k.startsWith('pcsk_') || k.startsWith('pc-'))     return 'pinecone';
+  if (k.startsWith('sbp_'))                             return 'supabase';
+  if (k.startsWith('sk-') && k.length < 45)             return 'sendgrid';
+  if (/^[a-f0-9]{32}$/i.test(k))                        return 'weatherapi';
+  if (/^[a-f0-9]{64}$/i.test(k))                        return 'openweather';
+  if (/^[a-f0-9]{32}[a-z0-9]{0,6}$/i.test(k))          return 'newsapi';
+  if (k.length >= 30 && k.length <= 36 && /^[a-z0-9_]+$/i.test(k)) return 'stripe';
+  return null;
+}
+
+// ── INDIVIDUAL API TESTS ─────────────────────────────────────────────────────
+// NOTE: These make real CORS-enabled API calls. Some providers block browser calls
+// and will show a CORS error — in that case the test will report an error, which
+// still tells you the key format is valid. A true 401 means invalid key.
+
+async function testAnthropic(key) {
+  const r = await fetch('https://api.anthropic.com/v1/models', {
+    headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' }
+  });
+  return { status: r.status, ok: r.status === 200 };
+}
+
+async function testOpenAI(key) {
+  const r = await fetch('https://api.openai.com/v1/models', {
+    headers: { 'Authorization': `Bearer ${key}` }
+  });
+  return { status: r.status, ok: r.status === 200 };
+}
+
+async function testGoogle(key) {
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`);
+  const d = await r.json().catch(() => ({}));
+  return { status: r.status, ok: r.status === 200, data: d };
+}
+
+async function testGoogleMaps(key) {
+  const r = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=New+York&key=${encodeURIComponent(key)}`);
+  const d = await r.json().catch(() => ({}));
+  return { status: r.status, ok: r.status === 200 && d.status !== 'REQUEST_DENIED', data: d };
+}
+
+async function testGitHub(key) {
+  const r = await fetch('https://api.github.com/user', {
+    headers: { 'Authorization': `Bearer ${key}`, 'Accept': 'application/vnd.github+json' }
+  });
+  const d = await r.json().catch(() => ({}));
+  return { status: r.status, ok: r.status === 200, data: d };
+}
+
+async function testStripe(key) {
+  const r = await fetch('https://api.stripe.com/v1/balance', {
+    headers: { 'Authorization': `Bearer ${key}` }
+  });
+  return { status: r.status, ok: r.status === 200 };
+}
+
+async function testSendGrid(key) {
+  const r = await fetch('https://api.sendgrid.com/v3/user/profile', {
+    headers: { 'Authorization': `Bearer ${key}` }
+  });
+  return { status: r.status, ok: r.status === 200 };
+}
+
+async function testHuggingFace(key) {
+  const r = await fetch('https://huggingface.co/api/whoami-v2', {
+    headers: { 'Authorization': `Bearer ${key}` }
+  });
+  const d = await r.json().catch(() => ({}));
+  return { status: r.status, ok: r.status === 200, data: d };
+}
+
+async function testReplicate(key) {
+  const r = await fetch('https://api.replicate.com/v1/account', {
+    headers: { 'Authorization': `Token ${key}` }
+  });
+  return { status: r.status, ok: r.status === 200 };
+}
+
+async function testCohere(key) {
+  const r = await fetch('https://api.cohere.ai/v1/check-api-key', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' }
+  });
+  return { status: r.status, ok: r.status === 200 };
+}
+
+async function testPinecone(key) {
+  const r = await fetch('https://api.pinecone.io/indexes', {
+    headers: { 'Api-Key': key }
+  });
+  return { status: r.status, ok: r.status === 200 };
+}
+
+async function testSupabase(key) {
+  const r = await fetch('https://api.supabase.com/v1/projects', {
+    headers: { 'Authorization': `Bearer ${key}` }
+  });
+  return { status: r.status, ok: r.status === 200 };
+}
+
+async function testWeatherAPI(key) {
+  const r = await fetch(`https://api.weatherapi.com/v1/current.json?key=${encodeURIComponent(key)}&q=London`);
+  const d = await r.json().catch(() => ({}));
+  return { status: r.status, ok: r.status === 200, data: d };
+}
+
+async function testOpenWeather(key) {
+  const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=London&appid=${encodeURIComponent(key)}`);
+  const d = await r.json().catch(() => ({}));
+  return { status: r.status, ok: r.status === 200, data: d };
+}
+
+async function testNewsAPI(key) {
+  const r = await fetch(`https://newsapi.org/v2/top-headlines?country=us&apiKey=${encodeURIComponent(key)}`);
+  const d = await r.json().catch(() => ({}));
+  return { status: r.status, ok: r.status === 200, data: d };
+}
+
+// ── STATUS MESSAGES ───────────────────────────────────────────────────────────
+function statusMessage(ok, status, providerName) {
+  if (ok) return `✓ API key is valid and working`;
+  switch(status) {
+    case 401: return `✗ Invalid API key — the key was rejected as unauthorized`;
+    case 403: return `✗ Forbidden — key lacks permissions or billing is not set up`;
+    case 429: return `✗ Rate limit hit — key is valid but you've exceeded usage limits`;
+    case 402: return `✗ Payment required — add billing credits to your ${providerName} account`;
+    case 404: return `✗ Endpoint not found — try a different key format`;
+    case 0:   return `✗ CORS blocked — ${providerName} blocks browser requests. Try from a server. Key format looks correct.`;
+    default:  return `✗ Test failed with HTTP ${status}`;
+  }
+}
+
+// ── COLORS ───────────────────────────────────────────────────────────────────
+function colors(ok, isCors) {
+  if (ok)     return { text: 'var(--green)', bg: 'var(--green-bg)', bd: 'var(--green-bd)', badge: '✓ PASS' };
+  if (isCors) return { text: 'var(--amber)', bg: 'var(--amber-bg)', bd: 'var(--amber-bd)', badge: '? CORS' };
+  return       { text: 'var(--red)',   bg: 'var(--red-bg)',   bd: 'var(--red-bd)',   badge: '✗ FAIL' };
+}
+
+function latencyColor(ms) {
+  if (!ms) return 'var(--muted)';
+  return ms < 600 ? 'var(--green)' : ms < 1500 ? 'var(--amber)' : 'var(--red)';
+}
+
+function statusCodeColor(s) {
+  if (s === 200) return 'var(--green)';
+  if (s >= 400)  return 'var(--red)';
+  return 'var(--muted)';
+}
+
+// ── SESSION LOG ───────────────────────────────────────────────────────────────
+let logs = [];
+let logCount = 0;
+
+function maskKey(k) {
+  if (k.length <= 8) return '••••••••';
+  return k.slice(0,5) + '•••••' + k.slice(-4);
+}
+
+function addLog(masked, providerName, ok, status, latency, isCors) {
+  logCount++;
+  const c = colors(ok, isCors);
+  logs.unshift({ masked, providerName, ok, status, latency, isCors, time: new Date().toLocaleTimeString('en-US',{hour12:false}), col: c });
+  renderLog();
+}
+
+function renderLog() {
+  const card = document.getElementById('log-card');
+  const body = document.getElementById('log-body');
+  const title = document.getElementById('log-title');
+  card.style.display = 'block';
+  title.textContent = `SESSION LOG — ${logs.length} test${logs.length !== 1 ? 's' : ''}`;
+  body.innerHTML = logs.slice(0, 20).map(l => `
+    <div class="log-row">
+      <span class="log-time">${l.time}</span>
+      <span class="log-stat" style="color:${l.col.text}">${l.col.badge}</span>
+      <span class="log-name">${l.providerName}</span>
+      <span class="log-mask">${l.masked}</span>
+      ${l.latency ? `<span class="log-lat">${l.latency}ms</span>` : '<span class="log-lat">—</span>'}
+    </div>`).join('');
+}
+
+// ── RENDER PILLS ─────────────────────────────────────────────────────────────
+function renderPills() {
+  const wrap = document.getElementById('pills-wrap');
+  document.getElementById('provider-count').textContent = `${Object.keys(PROVIDERS).length} providers`;
+  wrap.innerHTML = Object.entries(PROVIDERS).map(([id, p]) =>
+    `<div class="pill"><span class="pill-icon">${p.icon}</span>${p.name}</div>`
+  ).join('');
+}
+
+// ── DETECT ON INPUT ───────────────────────────────────────────────────────────
+let currentProvider = null;
+
+document.getElementById('key-input').addEventListener('input', function() {
+  const k = this.value.trim();
+  const btn = document.getElementById('test-btn');
+  btn.disabled = k.length < 4;
+
+  const id = k.length > 5 ? identifyProvider(k) : null;
+  currentProvider = id;
+
+  const badge   = document.getElementById('detected-badge');
+  const pinfo   = document.getElementById('provider-info');
+  const card    = document.getElementById('input-card');
+  const resCard = document.getElementById('result-card');
+  resCard.style.display = 'none';
+
+  if (id && PROVIDERS[id]) {
+    const p = PROVIDERS[id];
+    document.getElementById('det-icon').textContent = p.icon;
+    document.getElementById('det-name').textContent = p.name;
+    badge.classList.add('show');
+    document.getElementById('pi-icon').textContent = p.icon;
+    document.getElementById('pi-name').textContent = p.name;
+    document.getElementById('pi-desc').textContent = p.desc;
+    document.getElementById('pi-cat').textContent  = p.cat;
+    pinfo.classList.add('show');
+  } else {
+    badge.classList.remove('show');
+    pinfo.classList.remove('show');
+  }
+});
+
+document.getElementById('key-input').addEventListener('focus', () =>
+  document.getElementById('input-card').classList.add('focused'));
+document.getElementById('key-input').addEventListener('blur', () =>
+  document.getElementById('input-card').classList.remove('focused'));
+document.getElementById('key-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runTest();
+});
+
+// ── RAW RESPONSE TOGGLE ───────────────────────────────────────────────────────
+let rawVisible = false;
+function toggleRaw() {
+  rawVisible = !rawVisible;
+  document.getElementById('raw-response').style.display = rawVisible ? 'block' : 'none';
+  document.getElementById('toggle-raw').textContent = rawVisible ? '▼ Hide raw response' : '▶ Show raw response';
+}
+
+// ── MAIN TEST RUNNER ──────────────────────────────────────────────────────────
+document.getElementById('test-btn').addEventListener('click', runTest);
+
+async function runTest() {
+  const key = document.getElementById('key-input').value.trim();
+  if (!key) return;
+
+  const btn     = document.getElementById('test-btn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btn-text');
+  btn.disabled  = true;
+  spinner.style.display = 'block';
+  btnText.textContent   = 'TESTING...';
+  rawVisible = false;
+  document.getElementById('raw-response').style.display = 'none';
+  document.getElementById('result-card').style.display  = 'none';
+  document.getElementById('toggle-raw').style.display   = 'none';
+
+  const id = currentProvider || identifyProvider(key);
+  const p  = id ? PROVIDERS[id] : null;
+  const masked = maskKey(key);
+  const start  = Date.now();
+
+  let ok = false, httpStatus = null, isCors = false, rawData = null;
+
+  if (!p) {
+    // Unknown provider
+    showResult({
+      icon: '?', name: 'Unknown Provider', cat: 'Unidentified',
+      ok: false, isCors: false, httpStatus: null, latency: null,
+      msg: '✗ Could not identify the API provider from this key format. Check the key is complete and correct.',
+      docs: '', rawData: null,
+    });
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    btnText.textContent = 'RUN TEST →';
+    addLog(masked, 'Unknown', false, null, null, false);
+    return;
+  }
+
+  try {
+    const result = await Promise.race([
+      p.test(key),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 12000))
+    ]);
+    ok         = result.ok;
+    httpStatus = result.status;
+    rawData    = result.data || null;
+  } catch(err) {
+    if (err.message === 'timeout') {
+      httpStatus = null;
+      ok = false;
+    } else if (err.message.includes('Failed to fetch') || err.name === 'TypeError') {
+      // CORS or network error
+      isCors = true;
+      httpStatus = 0;
+      ok = false;
+    } else {
+      httpStatus = null;
+    }
+  }
+
+  const latency = httpStatus && httpStatus > 0 ? Date.now() - start : null;
+  const msg = httpStatus === null && !isCors
+    ? '✗ Request timed out — API may be down or key is invalid'
+    : statusMessage(ok, httpStatus, p.name);
+
+  showResult({ icon: p.icon, name: p.name, cat: p.cat, ok, isCors, httpStatus, latency, msg, docs: p.docs, rawData });
+  addLog(masked, p.name, ok, httpStatus, latency, isCors);
+
+  btn.disabled = false;
+  spinner.style.display = 'none';
+  btnText.textContent = 'RUN TEST →';
+}
+
+function showResult({ icon, name, cat, ok, isCors, httpStatus, latency, msg, docs, rawData }) {
+  const card = document.getElementById('result-card');
+  const c    = colors(ok, isCors);
+
+  card.style.display = 'block';
+
+  // Header
+  const header = document.getElementById('result-header');
+  header.style.background    = c.bg;
+  header.style.borderColor   = c.bd;
+  document.getElementById('res-icon').textContent  = icon;
+  document.getElementById('res-name').textContent  = name;
+  document.getElementById('res-cat').textContent   = cat;
+
+  const badge = document.getElementById('res-badge');
+  badge.textContent       = c.badge;
+  badge.style.color       = c.text;
+  badge.style.borderColor = c.bd;
+  badge.style.background  = 'var(--surface)';
+
+  // Message
+  const msgEl = document.getElementById('res-msg');
+  msgEl.textContent        = msg;
+  msgEl.style.color        = c.text;
+  msgEl.style.background   = c.bg;
+  msgEl.style.borderColor  = c.bd;
+
+  // Metrics
+  const statEl = document.getElementById('met-status');
+  statEl.textContent = httpStatus ? String(httpStatus) : (isCors ? 'CORS' : '—');
+  statEl.style.color = httpStatus ? statusCodeColor(httpStatus) : 'var(--amber)';
+
+  const latEl = document.getElementById('met-latency');
+  latEl.textContent  = latency ? `${latency}ms` : '—';
+  latEl.style.color  = latencyColor(latency);
+
+  const catEl = document.getElementById('met-cat');
+  catEl.textContent = cat;
+  catEl.style.color = 'var(--blue)';
+
+  // Docs
+  const docsEl = document.getElementById('res-docs');
+  docsEl.innerHTML = docs ? `Docs → <a href="${docs}" target="_blank" rel="noopener">${docs}</a>` : '';
+
+  // Raw response
+  const toggleBtn = document.getElementById('toggle-raw');
+  const rawEl     = document.getElementById('raw-response');
+  if (rawData) {
+    toggleBtn.style.display = 'inline-block';
+    rawEl.textContent = JSON.stringify(rawData, null, 2);
+  } else {
+    toggleBtn.style.display = 'none';
+  }
+}
+
+// ── CLEAR FUNCTIONS ───────────────────────────────────────────────────────────
+function clearAll() {
+  // Clear input
+  document.getElementById('key-input').value = '';
+  currentProvider = null;
+
+  // Hide detected badge + provider info
+  document.getElementById('detected-badge').classList.remove('show');
+  document.getElementById('provider-info').classList.remove('show');
+  document.getElementById('input-card').classList.remove('focused');
+
+  // Disable test button
+  document.getElementById('test-btn').disabled = true;
+
+  // Hide result card
+  document.getElementById('result-card').style.display = 'none';
+
+  // Reset raw response
+  rawVisible = false;
+  document.getElementById('raw-response').style.display = 'none';
+  document.getElementById('toggle-raw').style.display   = 'none';
+
+  // Focus back on input
+  document.getElementById('key-input').focus();
+}
+
+function clearLog() {
+  logs = [];
+  logCount = 0;
+  document.getElementById('log-card').style.display = 'none';
+  document.getElementById('log-body').innerHTML = '';
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderPills();
+</script>
+</body>
+</html>
